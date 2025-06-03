@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather App</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url("sky.jpg") no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      padding: 30px;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .weather-container {
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+
+    input {
+      padding: 10px;
+      width: 80%;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: white;
+      color: #0072ff;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #f0f0f0;
+    }
+
+    .result {
+      margin-top: 20px;
+      font-size: 1rem;
+    }
+
+    .error {
+      color: #ffcccc;
+    }
+
+    .weather-icon {
+      width: 80px;
+      height: 80px;
+    }
+
+    .data-label {
+      font-weight: bold;
+    }
+
+    @media screen and (max-width: 500px) {
+      .weather-container {
+        padding: 20px;
+        font-size: 0.9rem;
+      }
+
+      .weather-icon {
+        width: 60px;
+        height: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="weather-container">
+    <h2>🌦️ Weather App</h2>
+    <input type="text" id="locationInput" placeholder="Enter city" />
+    <br />
+    <button onclick="getWeather()">Get Weather</button>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    async function getWeather() {
+      const location = document.getElementById('locationInput').value.trim();
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = "Loading...";
+
+      const apiKey = '8a6f500a0a724a98ab7110247252205';
+      const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${location}&aqi=yes`;
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          if (response.status === 400) throw new Error("City not found");
+          if (response.status === 403) throw new Error("API key invalid or quota exceeded");
+          throw new Error("An unexpected error occurred");
+        }
+
+        const data = await response.json();
+        const {
+          name,
+          country,
+          localtime
+        } = data.location;
+        const {
+          temp_c,
+          condition,
+          wind_kph,
+          humidity
+        } = data.current;
+
+        resultDiv.innerHTML = `
+          <h3>${name}, ${country}</h3>
+          <p><img src="https:${condition.icon}" alt="${condition.text}" class="weather-icon"/></p>
+          <p class="data-label">Condition:</p> ${condition.text}<br>
+          <p class="data-label">Temperature:</p> ${temp_c}°C<br>
+          <p class="data-label">Humidity:</p> ${humidity}%<br>
+          <p class="data-label">Wind Speed:</p> ${wind_kph} km/h<br>
+          <p class="data-label">Local Time:</p> ${localtime}
+        `;
+      } catch (error) {
+        resultDiv.innerHTML = `<span class="error">❌ ${error.message}</span>`;
+      }
+    }
+  </script>
+</body>
+</html>
